@@ -1,0 +1,172 @@
+---
+title: "Simple Linear Regression"
+author: "Wing-Ho Ko"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(janitor)
+library(tidyverse)
+library(lmtest)
+library(palmerpenguins)
+```
+
+## Simple linear regression
+
+### Loading data
+
+Load and simplify the penguins dataset
+
+```{r}
+penguins_sim <- penguins |> select(species:body_mass_g) |> drop_na()
+```
+
+```{r}
+penguins_sim
+```
+
+### Perform simple linear regression
+
+Perform linear regression with body mass being the response variable and bill length being the explanatory variable:
+
+```{r}
+pg_lm <- lm(body_mass_g ~ bill_length_mm, penguins_sim)
+```
+
+### Extracting information from the fit
+
+Printout useful summary of the model
+
+```{r}
+pg_sm <- summary(pg_lm)
+print(pg_sm)
+```
+
+Extract the estimated standard deviation programmatically
+
+```{r}
+pg_sm$sigma
+```
+
+Extract the R^2 value programmatically
+
+```{r}
+pg_sm$r.squared
+```
+
+Extract the coefficient of the linear model programmatically
+
+```{r}
+coef(pg_lm)
+```
+
+Extract the residual of the linear fit
+
+```{r}
+residuals(pg_lm)
+```
+
+Plot the original data point against the fitted values
+
+```{r}
+penguins_fitted <- penguins_sim |> mutate(fit = fitted(pg_lm))
+
+ggplot(penguins_fitted) + 
+  geom_point(aes(x=bill_length_mm, y=body_mass_g)) +
+  geom_line(aes(x=bill_length_mm, y=fit), color="blue", linetype="dashed")
+```
+
+Plot the residuals against the value of the explanatory variable
+
+```{r}
+resid_df <- data.frame(
+  bill_length_mm = penguins_sim$bill_length_mm,
+  residual = residuals(pg_lm)
+)
+
+ggplot(resid_df, aes(x=bill_length_mm, y=residual)) + geom_point()
+```
+
+### Testing assumptions
+
+Check for heteroskedasticity (same variance for all values of x) more quantitatively using `bptest()` from the `lmtest` package
+
+```{r}
+bptest(pg_lm)
+```
+
+While we're at it, test if the residual is normally distributed
+
+```{r}
+shapiro.test(residuals(pg_lm))
+```
+
+### Making new predictions
+
+First, create a dataframe for new data:
+
+```{r}
+penguins_new <- data.frame(
+  bill_length_mm = seq(30, 60, 0.2)
+)
+```
+
+Making prediction using the fitted model
+
+```{r}
+predict(pg_lm, penguins_new)
+```
+
+Include the confidence interval
+
+```{r}
+pg_conf <- predict(pg_lm, penguins_new, interval="confidence")
+pg_conf
+```
+
+Combine with the explanatory variable to form a dataframe:
+
+```{r}
+penguins_conf <- cbind(penguins_new, as.data.frame(pg_conf))
+penguins_conf
+```
+
+Do the same for prediction interval
+
+```{r}
+pg_pred <- predict(pg_lm, penguins_new, interval="prediction")
+penguins_pred <- cbind(penguins_new, as.data.frame(pg_pred))
+print(penguins_pred)
+```
+
+Plot confidence interval with data:
+
+```{r}
+ggplot(penguins_conf, aes(x=bill_length_mm, y=fit)) + 
+  geom_line(color="blue", linetype="dashed") + 
+  geom_ribbon(aes(ymin=lwr, ymax=upr), fill="cyan", alpha=0.2) + 
+  geom_point(aes(x=bill_length_mm, y=body_mass_g), penguins_sim) + 
+  coord_cartesian(xlim=c(30, 60))
+```
+
+Compare with `geom_smooth()` with `method=lm`:
+
+```{r}
+ggplot(penguins_sim, aes(x=bill_length_mm, y=body_mass_g)) + 
+  geom_smooth(method="lm") + geom_point() + 
+  coord_cartesian(xlim=c(30, 60))
+```
+
+Now plot the prediction interval instead:
+
+```{r}
+ggplot(penguins_pred, aes(x=bill_length_mm, y=fit)) + 
+  geom_line(color="forestgreen", linetype="dashed") + 
+  geom_ribbon(aes(ymin=lwr, ymax=upr), fill="lawngreen", alpha=0.2) + 
+  geom_point(aes(x=bill_length_mm, y=body_mass_g), penguins_sim) + 
+  coord_cartesian(xlim=c(30, 60))
+```

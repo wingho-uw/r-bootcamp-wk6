@@ -1,0 +1,53 @@
+---
+title: "Week 6 exercises"
+author: "Wing-Ho Ko"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(lmtest)
+```
+
+### Exercise 1
+
+We'll work with the California Cooperative Oceanic Fisheries Investigations (CalCOFI) data, included in the file `CalCOFI_sub.csv` in the data folder.
+
+1. Load the data and subset it by (a) requiring the depth to be between 20 and 120 m, AND (b) requiring the data to be taken in July or August
+
+2. Make a plot of water temperature (`T_degC`) versus depth (`depth_m`)
+
+3. Perform a simple linear regression with temperature being the response variable and depth being the explanatory variable. Print the summary of the resulting fit. Is the dependence of temperature on depth statistical significant ( = discernible)?
+
+4. Find the 90% confidence interval of the slope of the fit
+
+5. Plot the residual against the explanatory variable. Is there heteroscedasticity? Confirm your intuition with the Breusch-Pagan test
+
+6. Suppose you are measuring temperature at a depth of 50 m, what range of values would you expect during July and August, 90% of the time? How about at 100 m depth?
+
+### Exercise 2
+
+1. What terms are included in the following models?
+
+ (a) Y ~ X1 + X2 * X3
+
+ (b) Y ~ (X1 + X2) * X3 
+
+2. Suppose you have the response variable Y and 3 explanatory variables X1, X2, X3. Write down the formula that includes all main effects (Xi) and second order interactions (Xi Xj) but not the third order interaction X1 X2 X3
+
+### Exercise 3
+
+We'll again work with the California Cooperative Oceanic Fisheries Investigations (CalCOFI) data.
+
+1. Model the dependence of oxygen (`O2_mL_L`) on temperature (`T_degC`), salinity (`salinity`), and depth (`depth_m`) using an additive multiple linear model. Apply the `summary()` function on the resulting model object. Are the overall result statistically significant? What about the individual parameters?
+
+2. Check the Bayesian information criterion of the model in part 1 against the one where all statistically insignificant dependence(s) are removed. Is it advisable to remove the statistically insignificant dependence from the model?
+
+3. Consider the additive model with only the significant dependence(s) included. Compare it with a non-additive model where the interactions between those variable(s) are included. Which one perform better? Is the interaction significant?
+
+4. Fix salinity at 34, and consider water temperature in the range between 10°C, and 18°C. Predict the oxygen concentration as a function of temperature using (a) the additive model and (b) the interacting model as described in part 3. Illustrate the results in a plot.
+

@@ -1,0 +1,250 @@
+---
+title: "Multiple linear regression"
+author: "Wing-Ho Ko"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(rgl)
+library(car)
+library(lmtest)
+library(palmerpenguins)
+```
+
+### Additive case
+
+```{r}
+penguins_sim <- penguins |> select(species:body_mass_g) |> drop_na()
+```
+
+```{r}
+penguins_sim
+```
+
+Regress body mass on bill length and bill depth
+
+```{r}
+pg_lm_2 <- lm(body_mass_g ~ bill_length_mm + bill_depth_mm, penguins_sim)
+```
+
+```{r}
+summary(pg_lm_2)
+```
+
+Check normality and heteroscedasticity as before
+
+```{r}
+bptest(pg_lm_2)
+```
+
+```{r}
+shapiro.test(residuals(pg_lm_2))
+```
+
+Visualize how the variance may be skewed
+
+```{r}
+pg_fitted_2 = data.frame(fit=fitted(pg_lm_2), resid=residuals(pg_lm_2))
+
+ggplot(pg_fitted_2, aes(x=fit, y=resid)) + geom_point()
+```
+
+Check the span of values in the explanatory variables:
+
+```{r}
+summary(penguins_sim)
+```
+
+Create new data for prediction
+
+Note the use of the `rep` function, once with the argument `times` and the other with the argument `each`
+
+```{r}
+new_blength = seq(32, 60, 1)
+new_bdepth = seq(13, 22, 1)
+
+penguins_new <- data.frame(
+  bill_length_mm = rep(new_blength, times=length(new_bdepth)),
+  bill_depth_mm = rep(new_bdepth, each=length(new_blength))
+)
+```
+
+```{r}
+penguins_new
+```
+
+Alternatively, use the `cart_expand()` function in the included source file `cart_expand.R`
+
+```{r}
+source("cart_expand.R")
+
+cart_expand(
+  seq(32, 60, 1), seq(13, 22, 1),
+  names = c("bill_length_mm", "bill_depth_mm")
+)
+```
+
+Now making the prediction
+
+```{r}
+penguins_pred_2 <- penguins_new |> mutate(
+  pred = predict(pg_lm_2, penguins_new)
+)
+
+penguins_pred_2
+```
+
+Visualize the prediction using `rgl`
+
+```{r}
+pred_mat_2 <- as.matrix(penguins_pred_2$pred)
+dim(pred_mat_2) <- c(length(new_blength), length(new_bdepth))
+
+persp3d(new_blength, new_bdepth, pred_mat_2, front = "lines", back = "lines")
+```
+
+### Non-additive case
+
+Again use the penguins dataset
+
+```{r}
+penguins_sim <- penguins |> select(species:body_mass_g) |> drop_na()
+```
+
+```{r}
+penguins_sim
+```
+
+Non-additive model on the effect of bill length and bill depth on body mass:
+
+```{r}
+pg_lm_2x <- lm(body_mass_g ~ bill_length_mm * bill_depth_mm, penguins_sim)
+```
+
+```{r}
+summary(pg_lm_2x)
+```
+
+Calculating confidence interval for the estimated parameters
+
+```{r}
+confint(pg_lm_2x)
+```
+
+Construct the grid to make prediction on
+
+```{r}
+source("cart_expand.R")
+
+new_blength <- seq(32, 60, 1)
+new_bdepth <- seq(13, 22, 1)
+
+penguins_new <- cart_expand(
+  new_blength, new_bdepth,
+  names = c("bill_length_mm", "bill_depth_mm")
+)
+```
+
+Making prediction:
+
+```{r}
+penguins_pred_2x <- penguins_new |> mutate(
+  pred = predict(pg_lm_2x, penguins_new)
+)
+
+penguins_pred_2x
+```
+
+Visualize the prediction using `rgl`
+
+```{r}
+pred_mat_2x <- as.matrix(penguins_pred_2x$pred)
+dim(pred_mat_2x) <- c(length(new_blength), length(new_bdepth))
+
+persp3d(new_blength, new_bdepth, pred_mat_2x, front = "lines", back = "lines")
+```
+
+Compare the additive and interacting models using AIC and BIC
+
+```{r}
+AIC(pg_lm_2, pg_lm_2x)
+```
+
+```{r}
+BIC(pg_lm_2, pg_lm_2x)
+```
+
+Try to fit body mass using bill length, bill depth, and flipper length as explanatory variables. Consider the additive, non-additive second order, and fully interacting model
+
+```{r}
+pg_lm_3 = lm(
+  body_mass_g ~ bill_length_mm + bill_depth_mm + flipper_length_mm, 
+  penguins_sim
+)
+```
+
+```{r}
+pg_lm_3x = lm(
+  body_mass_g ~ 
+    bill_length_mm + bill_depth_mm + flipper_length_mm + 
+    bill_length_mm:bill_depth_mm + 
+    bill_length_mm:flipper_length_mm + 
+    bill_depth_mm:flipper_length_mm, 
+  penguins_sim
+)
+```
+
+```{r}
+pg_lm_3xx = lm(
+  body_mass_g ~ bill_length_mm * bill_depth_mm * flipper_length_mm, 
+  penguins_sim
+)
+```
+
+Check the summary for each of them.
+
+```{r}
+summary(pg_lm_3)
+```
+
+```{r}
+summary(pg_lm_3x)
+```
+
+```{r}
+summary(pg_lm_3xx)
+```
+
+Check AIC comparison:
+
+```{r}
+AIC(pg_lm_3, pg_lm_3x, pg_lm_3xx)
+```
+
+Do the same for BIC:
+
+```{r}
+BIC(pg_lm_3, pg_lm_3x, pg_lm_3xx)
+```
+
+Start with additive model then try to add terms one-by-one:
+
+```{r}
+step(
+  pg_lm_3, 
+  body_mass_g ~ bill_length_mm * bill_depth_mm * flipper_length_mm,
+  direction="forward"
+)
+```
+
+Start with the fully interacting model, then try to subtract term one-by-one:
+
+```{r}
+step(pg_lm_3xx, direction="backward")
+```
+
