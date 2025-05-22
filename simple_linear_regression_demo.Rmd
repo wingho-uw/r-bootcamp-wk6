@@ -135,14 +135,6 @@ penguins_conf <- cbind(penguins_new, as.data.frame(pg_conf))
 penguins_conf
 ```
 
-Do the same for prediction interval
-
-```{r}
-pg_pred <- predict(pg_lm, penguins_new, interval="prediction")
-penguins_pred <- cbind(penguins_new, as.data.frame(pg_pred))
-print(penguins_pred)
-```
-
 Plot confidence interval with data:
 
 ```{r}
@@ -159,6 +151,14 @@ Compare with `geom_smooth()` with `method=lm`:
 ggplot(penguins_sim, aes(x=bill_length_mm, y=body_mass_g)) + 
   geom_smooth(method="lm") + geom_point() + 
   coord_cartesian(xlim=c(30, 60))
+```
+
+Do the same for prediction interval
+
+```{r}
+pg_pred <- predict(pg_lm, penguins_new, interval="prediction")
+penguins_pred <- cbind(penguins_new, as.data.frame(pg_pred))
+print(penguins_pred)
 ```
 
 Now plot the prediction interval instead:

@@ -17,7 +17,7 @@ library(lmtest)
 
 We'll work with the California Cooperative Oceanic Fisheries Investigations (CalCOFI) data, included in the file `CalCOFI_sub.csv` in the data folder.
 
-1. Load the data and subset it by (a) requiring the depth to be between 20 and 120 m, AND (b) requiring the data to be taken in July or August
+1. Load the data and subset it by (a) requiring the depth to be between 20 and 120 m (endpoints inclusive), AND (b) requiring the data to be taken in July or August
 
 2. Make a plot of water temperature (`T_degC`) versus depth (`depth_m`)
 
@@ -41,13 +41,13 @@ We'll work with the California Cooperative Oceanic Fisheries Investigations (Cal
 
 ### Exercise 3
 
-We'll again work with the California Cooperative Oceanic Fisheries Investigations (CalCOFI) data.
+We'll again work with the California Cooperative Oceanic Fisheries Investigations (CalCOFI) data. Again we'll subset the depth to the range of 20 - 120 m (endpoints inclusive) and the months to July and August
 
 1. Model the dependence of oxygen (`O2_mL_L`) on temperature (`T_degC`), salinity (`salinity`), and depth (`depth_m`) using an additive multiple linear model. Apply the `summary()` function on the resulting model object. Are the overall result statistically significant? What about the individual parameters?
 
-2. Check the Bayesian information criterion of the model in part 1 against the one where all statistically insignificant dependence(s) are removed. Is it advisable to remove the statistically insignificant dependence from the model?
+2. Check the Bayesian information criterion of the model in part 1 against the one where the least significant dependence is dropped. Is it advisable to remove the least significant explanatory variable from the model?
 
-3. Consider the additive model with only the significant dependence(s) included. Compare it with a non-additive model where the interactions between those variable(s) are included. Which one perform better? Is the interaction significant?
+3. Consider the additive model with the least significant dependence dropped. Compare it with a non-additive model where the interactions between those remaining variables are included. Which one perform better? Is the interaction significant?
 
 4. Fix salinity at 34, and consider water temperature in the range between 10°C, and 18°C. Predict the oxygen concentration as a function of temperature using (a) the additive model and (b) the interacting model as described in part 3. Illustrate the results in a plot.
 

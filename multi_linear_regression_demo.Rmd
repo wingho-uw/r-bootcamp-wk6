@@ -36,22 +36,24 @@ pg_lm_2 <- lm(body_mass_g ~ bill_length_mm + bill_depth_mm, penguins_sim)
 summary(pg_lm_2)
 ```
 
-Check normality and heteroscedasticity as before
-
-```{r}
-bptest(pg_lm_2)
-```
-
-```{r}
-shapiro.test(residuals(pg_lm_2))
-```
-
 Visualize how the variance may be skewed
 
 ```{r}
 pg_fitted_2 = data.frame(fit=fitted(pg_lm_2), resid=residuals(pg_lm_2))
 
 ggplot(pg_fitted_2, aes(x=fit, y=resid)) + geom_point()
+```
+
+Check heteroscedasticity more formally using bptest()
+
+```{r}
+bptest(pg_lm_2)
+```
+
+Now check for normality
+
+```{r}
+shapiro.test(residuals(pg_lm_2))
 ```
 
 Check the span of values in the explanatory variables:
